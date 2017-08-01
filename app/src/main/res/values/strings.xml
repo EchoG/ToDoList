@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">ToDoList</string>
+    <string name="etNewItem">Enter a new item</string>
+    <string name="saveButton">Save</string>
+</resources>
