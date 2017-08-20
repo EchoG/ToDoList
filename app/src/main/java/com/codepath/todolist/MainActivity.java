@@ -1,23 +1,24 @@
 package com.codepath.todolist;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 
-import org.apache.commons.io.FileUtils;
+import com.raizlabs.android.dbflow.config.FlowConfig;
+import com.raizlabs.android.dbflow.config.FlowManager;
+import com.raizlabs.android.dbflow.sql.language.SQLite;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
-    ArrayList<String> items;
-    ArrayAdapter<String> itemsAdaper;
+    List<Item> items;
+    ItemAdapter itemsAdaper;
     ListView lvItems;
     private final int REQUEST_CODE = 20;
 
@@ -25,9 +26,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        FlowManager.init(new FlowConfig.Builder(this).build());
+
         lvItems = (ListView)findViewById(R.id.lvItems);
-        readItems();
-        itemsAdaper = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, items);
+        items = queryAll();
+        itemsAdaper = new ItemAdapter(this, items);
         lvItems.setAdapter(itemsAdaper);
         setupListViewListener();
         editItemListener();
@@ -36,65 +39,63 @@ public class MainActivity extends AppCompatActivity {
     public void onAddItem(View v){
         EditText etNewItem = (EditText)findViewById(R.id.etNewItem);
         String itemText = etNewItem.getText().toString();
-        itemsAdaper.add(itemText);
+
+        System.out.println(itemText);
+
+        Item newItem = new Item();
+        newItem.id = UUID.randomUUID();
+        newItem.content = itemText;
+        newItem.creationDate = new Date();
+        newItem.priority = "";
+        newItem.save();
+
+        itemsAdaper.add(newItem);
         etNewItem.setText("");
-        writeItems();
+    }
+
+    public List<Item> queryAll(){
+        List<Item> allItems = SQLite.select().from(Item.class).orderBy(Item_Table.creationDate, true).queryList();
+        return allItems;
     }
 
     private void setupListViewListener(){
         lvItems.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener(){
             @Override
             public boolean onItemLongClick(AdapterView<?> adapter, View item, int pos, long id){
+                Item deletedItem = items.get(pos);
+                deletedItem.delete();
                 items.remove(pos);
                 itemsAdaper.notifyDataSetChanged();
-                writeItems();
                 return true;
             }
         });
-    }
-
-    private void readItems(){
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try{
-            items = new ArrayList<String>(FileUtils.readLines(todoFile));
-        } catch(IOException e){
-            items = new ArrayList<String>();
-        }
-    }
-
-    private void writeItems(){
-        File filesDir = getFilesDir();
-        File todoFile = new File(filesDir, "todo.txt");
-        try{
-            FileUtils.writeLines(todoFile, items);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void editItemListener(){
         lvItems.setOnItemClickListener(new AdapterView.OnItemClickListener(){
             @Override
             public void onItemClick(AdapterView<?> adapter, View view, int pos, long id){
-                String selectedItem = lvItems.getItemAtPosition(pos).toString().trim();
-                Intent gotoEditView = new Intent(MainActivity.this, EditItemActivity.class);
-                gotoEditView.putExtra("content", selectedItem);
-                gotoEditView.putExtra("index", pos);
-                startActivityForResult(gotoEditView, REQUEST_CODE);
+                Item editedItem = items.get(pos);
+                showEditDialog(editedItem);
             }
         });
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
-            String editedItem = data.getExtras().getString("editedContent");
-            int pos = data.getIntExtra("index", 0);
-            items.set(pos, editedItem);
-            itemsAdaper.notifyDataSetChanged();
-            writeItems();
-        }
+    private void showEditDialog(Item item) {
+        FragmentManager fm = getSupportFragmentManager();
+        EditItemDialogFragment editNameDialogFragment = EditItemDialogFragment.newInstance(item);
+        editNameDialogFragment.show(fm, "fragment_edit_item");
+        editNameDialogFragment.editSaveListener = new EditItemDialogFragment.EditSaveListener() {
+            @Override
+            public void onEditSave(Item item, EditItemDialogFragment editItemDialogFragment){
+                item.save();
+                itemsAdaper.notifyDataSetChanged();
+                editItemDialogFragment.dismiss();
+            }
+        };
     }
+
+
+
 }
 

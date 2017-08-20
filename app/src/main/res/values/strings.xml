@@ -1,5 +1,10 @@
 <resources>
     <string name="app_name">ToDoList</string>
     <string name="etNewItem">Enter a new item</string>
-    <string name="saveButton">Save</string>
+    <string name="saveButton">SAVE</string>
+    <string-array name="priority">
+        <item>High</item>
+        <item>Medium</item>
+        <item>Low</item>
+    </string-array>
 </resources>

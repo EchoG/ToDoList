@@ -14,7 +14,7 @@
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:onClick="onAddItem"
-        android:text="Button" />
+        android:text="Add" />
 
     <ListView
         android:id="@+id/lvItems"
