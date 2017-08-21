@@ -57,7 +57,7 @@ Why adapter is important? Adapter can show the data on the UI view and it can al
 
 ## Notes
 
-..* The listener of save button of the edit dialog is difficult for me to understand at first. I spent hours to understant the basic concept of callback and the implementation of listener. It is worth the time because it is an important concept that is used in many places, like the callbacks in Node.js, the delegate in Swift, and so on. When I understood and implemented the listener in this project, I found I undertood the principles of callbacks in Node.js and delegate in Swift better. 
+* The listener of save button of the edit dialog is difficult for me to understand at first. I spent hours to understant the basic concept of callback and the implementation of listener. It is worth the time because it is an important concept that is used in many places, like the callbacks in Node.js, the delegate in Swift, and so on. When I understood and implemented the listener in this project, I found I undertood the principles of callbacks in Node.js and delegate in Swift better. 
 
 ## License
 
